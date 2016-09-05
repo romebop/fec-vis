@@ -10,6 +10,7 @@
  * @params {d3.dispatch} dispatch
  */
 var TransactionHistogram = function (selector, dispatch) {
+
     this.dispatch = dispatch;
     this.selector = selector;
 
@@ -27,8 +28,8 @@ var TransactionHistogram = function (selector, dispatch) {
     // Bin counts
     this.bins = [50, 200, 500, 1000, 10000, 50000, 100000, 1000000];
     this.histogramLayout = d3.layout.histogram()
-      .bins([0].concat(this.bins))
-      .value(function(d) {return d.amount;});
+        .bins([0].concat(this.bins))
+        .value(function(d) {return d.amount;});
 
     // Initialize default color
     this.setHistogramColor(this.colorStates.DEFAULT);
@@ -51,9 +52,9 @@ var TransactionHistogram = function (selector, dispatch) {
  * @params {Array} data is an array of objects with keys 'state' and 'amount'
  */
 TransactionHistogram.prototype.render = function(data) {
-    
+
     var that = this;
-    
+
     var histogramData;
     if (!this.hasScaleSet()) { // only goes here on first load
         histogramData = this.setScale(data);
@@ -64,42 +65,45 @@ TransactionHistogram.prototype.render = function(data) {
     var bar = this.svg.selectAll('.bar')
         .data(histogramData, function(d) { return d.x; }); // update selection    
     var barEnter = bar.enter(); // enter selection
-    var barExit = bar.exit(); // exit selection
-
-    barExit.remove();
+    
+    // var barExit = bar.exit(); // exit selection
+    // barExit.remove();
 
     var barEnterG = barEnter.append("g") // create bar grouping
         .attr("class", "bar")
+        .attr("transform", function(d) { 
+            return "translate(" + that.xScale(d.x) + "," + that.height + ")"; 
+        });
     
-    barEnterG.append("rect")
-        .attr("x", 1); // Add rectangle to bar grouping
+    barEnterG.append("rect") // add rectangle
+        .attr("x", 1)
+        .attr("height", 0)
+        .attr("width", that.xScale(histogramData[0].dx) - 2);
 
-    barEnterG.append("text")
+    barEnterG.append("text") // add text
         .attr("dy", ".75em")
-        .attr("text-anchor", "middle"); // Add text to bar grouping
+        .attr("text-anchor", "middle");
     
     /** Update phase */
     bar
         .transition().duration(300)
-            .attr("transform", function(d) { return "translate(" + that.xScale(d.x) + "," + that.yScale(d.y) + ")"; });
+            .attr("transform", function(d) { 
+                return "translate(" + that.xScale(d.x) + "," + that.yScale(d.y) + ")"; 
+            });
 
     bar.select('rect')
-        .attr("width", that.xScale(histogramData[0].dx) - 2)
         .transition().duration(300)
             .style("fill", that.colorFill(that))
             .attr("height", function(d) { return that.height - that.yScale(d.y); });
 
     bar.select('text')
         .transition().duration(150)
-            .style('opacity', 0)
-        .transition().duration(150)
-            .style('opacity', 1)
             .attr("y", function(d) {
                 if (that.isBarLargeEnough(d)) {
                     this.setAttribute("fill", "#F5F5F5");
                     return 6; // go below
                 } else {
-                    this.setAttribute("fill", "#000");
+                    this.setAttribute("fill", "#888");
                     return -10; // go above
                 }
             })
@@ -112,12 +116,15 @@ TransactionHistogram.prototype.render = function(data) {
 
 TransactionHistogram.prototype.colorFill = function (that) {
     var color;
-    if (that.currentColorState == that.colorStates.PRIMARY) {
-        color = "#3498DB";
-    } else if (that.currentColorState == that.colorStates.SECONDARY) {
-        color = "#f39c12";
-    } else {
-        color ="#4CAF50";
+    switch (that.currentColorState) {
+        case that.colorStates.PRIMARY:
+            color = "#3498DB";
+            break;
+        case that.colorStates.SECONDARY:
+            color = "#f39c12";
+            break;
+        default:
+            color ="#4CAF50";
     }
     return color;
 };
@@ -184,7 +191,6 @@ TransactionHistogram.prototype.setScale = function (data) {
       .domain(this.bins)
       .range(d3.range(0, this.width, this.width/(this.bins.length + 1)));
 
-    // Implement: define a suitable yScale given the data
     this.yScale = d3.scale.linear()
         .domain([0, d3.max(histogramData, function(d) { return d.y; })])
         .range([this.height, 0]);

@@ -27,6 +27,8 @@ var DashboardController = function(mapSelection, histogramSelection, dependencie
     );
 
     this.transactionHistogram = new TransactionHistogram(histogramSelection, this.dispatch);
+
+    // store data to render for performance
 };
 
 /*
@@ -37,8 +39,8 @@ var DashboardController = function(mapSelection, histogramSelection, dependencie
  */
 DashboardController.prototype.firstLoad = function () {
     queue()
-        .defer(d3.json, 'all-transactions.json')
-        .defer(d3.json, 'summed-transactions.json')
+        .defer(d3.json, 'assets/data/all-transactions.json')
+        .defer(d3.json, 'assets/data/summed-transactions.json')
         .await(this.firstProcess.bind(this));
 };
 
@@ -53,9 +55,8 @@ DashboardController.prototype.firstLoad = function () {
  */
 DashboardController.prototype.firstProcess = function (error, response0, response1) {
     // Store for later use
-    console.log('response0', response0);
-    console.log('response1', response1);
     this.allTransactions = response0['txn_amounts'];
+    this.renderData = this.allTransactions // default
     this.stateTotalTransactions = response1['txn_totals'];
 
     // Render!
@@ -84,13 +85,12 @@ DashboardController.prototype.processChanges = function () {
     if (this.usCashMap.isSelectionClick() && this.usCashMap.hasSelection()) {
         // Selection was clicked
         // Make sure transaction histogram is rescaled to just the selection
-        renderData = this.filterTransactionsByMapSelection(); 
-        this.transactionHistogram.setScale(renderData);
+        this.transactionHistogram.setScale(this.renderData);
         this.transactionHistogram.setHistogramColor(this.transactionHistogram.colorStates.SECONDARY);
     } else if (this.usCashMap.hasSelection()) {
         // Selection is just hovered upon
         // Use scale representing all of data (for a visually relative measure) 
-        renderData = this.filterTransactionsByMapSelection();
+        this.renderData = this.filterTransactionsByMapSelection();
         this.transactionHistogram.setScale(this.allTransactions);
         this.transactionHistogram.setHistogramColor(this.transactionHistogram.colorStates.PRIMARY);
     } else {
@@ -101,27 +101,24 @@ DashboardController.prototype.processChanges = function () {
         this.transactionHistogram.setHistogramColor(this.transactionHistogram.colorStates.DEFAULT);
     }
 
-    // Uncomment the following line when you're ready!
-    this.transactionHistogram.render(renderData);
+    this.transactionHistogram.render(this.renderData);
 };
 
 /*
  * filterTransactionsByMapSelection()
  *
- * Filter the objects in the array `this.allTranscations` for objects that match the selected states
+ * Filter the objects in the array `this.allTransactions` for objects that match the selected states
  * in `this.usCashMap`.
  *
  * @return {Array} list of objects filtered by the selected states in `this.USCashMap`'s state selection
  */
 DashboardController.prototype.filterTransactionsByMapSelection = function () {
-    // Implement
-    //var that = this;
 
     function stateFilter(obj) {
         var states = this.usCashMap.getStatesInSelection();
         for (var i = 0; i < states.length; i++) {
             var state = states[i];
-            if (obj['state'] != state) return false;
+            if (obj['state'] !== state) return false;
         }
         return true;
     }

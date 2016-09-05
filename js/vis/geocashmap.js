@@ -121,7 +121,7 @@ USCashMap.prototype.render = function (data) {
             // Change the color based on the state's total contribution amount
             // Hint: take a look at moneyColorScale defined above
 
-            // Implement
+            
             return moneyColorScale(d['total_amount']);  // Return a hexcode
         });
 
@@ -148,7 +148,7 @@ USCashMap.prototype.render = function (data) {
         // `that` variable defined above rather than `this`, since `this` is rebound to a newly
         // defined function.
 
-        // Implement
+        
         var state = d['state'];
         var total_amount = d['total_amount'];
 
@@ -175,7 +175,7 @@ USCashMap.prototype.render = function (data) {
         // `that` variable defined above rather than `this`, since `this` is rebound to a newly
         // defined function.
 
-        // Implement
+        
         var state = d['state'];
         var total_amount = d['total_amount'];
 
@@ -205,7 +205,7 @@ USCashMap.prototype.render = function (data) {
         // `that` variable defined above rather than `this`, since `this` is rebound to a newly
         // defined function.
 
-        // Implement
+        
         var state = d['state'];
         var total_amount = d['total_amount'];
 
