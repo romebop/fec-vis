@@ -80,8 +80,6 @@ DashboardController.prototype.firstProcess = function (error, response0, respons
  */
 DashboardController.prototype.processChanges = function () {
 
-    var renderData;  // filter renderData as needed.
-
     if (this.usCashMap.isSelectionClick() && this.usCashMap.hasSelection()) {
         // Selection was clicked
         // Make sure transaction histogram is rescaled to just the selection
@@ -96,7 +94,7 @@ DashboardController.prototype.processChanges = function () {
     } else {
         // No user interaction
         // Process the map like normal
-        renderData = this.allTransactions;
+        this.renderData = this.allTransactions;
         this.transactionHistogram.setScale(this.allTransactions);
         this.transactionHistogram.setHistogramColor(this.transactionHistogram.colorStates.DEFAULT);
     }
